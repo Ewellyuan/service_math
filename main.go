@@ -14,7 +14,6 @@ import (
 type IntService interface {
 	Sum(context.Context, int, int) int
 	Mul(context.Context, int, int) int
-	Dec(context.Context, int, int) int
 }
 
 type IntServiceImpl struct {}
@@ -23,9 +22,6 @@ func (IntServiceImpl) Sum(_ context.Context, x, y int) int {
 }
 func (IntServiceImpl) Mul(_ context.Context, x, y int) int {
 	return x*y
-}
-func (IntServiceImpl) Dec(_ context.Context, x, y int) int {
-	return x-y
 }
 
 // 请求、响应消息体
@@ -75,29 +71,6 @@ func decodeMulRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return request, nil
 }
 
-// 请求、响应消息体
-type decRequest struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-}
-type decResponse struct {
-	S int `json:"s"`
-}
-func makeDecEndpoint(intS IntService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(decRequest)
-		S := intS.Dec(ctx, req.X, req.Y)
-		return decResponse{S}, nil
-	}
-}
-func decodeDecRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request decRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		return nil, err
-	}
-	return request, nil
-}
-
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
 	return json.NewEncoder(w).Encode(response)
 }
@@ -118,17 +91,10 @@ func main() {
 		encodeResponse,
 	)
 
-	decHandler := httptransport.NewServer(
-		makeDecEndpoint(initS),
-		decodeDecRequest,
-		encodeResponse,
-	)
-
 	// 路由配置
 	http.Handle("/sum", sumHandler)
 	http.Handle("/mul", mulHandler)
-	http.Handle("/dec", decHandler)
-	
+
 	// 日志
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
