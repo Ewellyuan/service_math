@@ -128,9 +128,9 @@ func main() {
 	http.Handle("/sum", sumHandler)
 	http.Handle("/mul", mulHandler)
 	http.Handle("/dec", decHandler)
-	
+
 	// 日志
-	log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // curl -X POST -d '{"x":119,"y":99999999}' http://localhost:8080/sum
